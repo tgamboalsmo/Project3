@@ -4,6 +4,8 @@ var Enemy = function(x,y,speed) {
 	this.y = y;
 	this.speed = speed;
     this.sprite = 'images/enemy-bug.png';
+    this.width = 60;   	//Enemy pixel width
+    this.height = 60;		//Enemy pixel height
 }
 
 // Enemy update method
@@ -38,9 +40,11 @@ var Player = function(x,y) {
 	this.x = x;
 	this.y = y;
 	this.direction;       //Direction from inputHandler
-	this.distance = 40;	  //Distance to move
-	this.speed = 100;     //Speed to move
+	this.distance = 15;	  //Distance per move on canvas in X directions
+	this.speed = 200;     //Speed to player per move
 	this.sprite = 'images/char-boy.png';
+	this.width = 60;   //Player pixel width
+	this.height = 60;   //Player pixel height
 }
 
 //Player update method
@@ -49,40 +53,38 @@ Player.prototype.update = function(dt) {
     // does initial check to make sure player is in bounds.
     // Another boundary check is performed during for loop.
    if (this.direction == 'up' && this.y > -10) {
-    	for (i=0;i<this.distance;i++) {
-			this.y -= this.speed * dt;
-			if (this.y < -10) {
-				this.y = -10;
-			}
-		}
-		console.log(this.y);
+ 		this.y -= 83;
+    	//for (i=0;i<this.distance;i++) {
+		//	this.y -= this.speed * dt;
+		//	if (this.y < -10) {
+		//		this.y = -10;
+		//	}
+		//}
 	} 			
-	if (this.direction == 'down' && this.y < 385) {
-		for (i=0;i<this.distance;i++) {
-			this.y += this.speed * dt;
-			if (this.y > 385) {
-				this.y = 385;
-			}
-		}
-		console.log(this.y);
+	if (this.direction == 'down' && this.y < 405) {
+		this.y += 83;
+		//for (i=0;i<this.distance;i++) {
+		//	this.y += this.speed * dt;
+		//	if (this.y > 400) {
+		//		this.y = 400;
+		//	}
+		//}
 	} 
-	if (this.direction == 'left' && this.x > 0) {
+	if (this.direction == 'left' && this.x > -15) {
 		for (i=0;i<this.distance;i++) {
 			this.x -= this.speed * dt;
-			if (this.x < 0) {
-				this.x = 0;
+			if (this.x < -15) {
+				this.x = -15;
 			}
 		}
-		console.log(this.x);
 	} 
-	if (this.direction == 'right' && this.x < 405) {
+	if (this.direction == 'right' && this.x < 419) {
 		for (i=0;i<this.distance;i++) {
 			this.x += this.speed * dt;
-			if (this.x > 405) {
-				this.x = 405;
+			if (this.x > 419) {
+				this.x = 419;
 			}
 		}
-		console.log(this.x);
 	}
     this.direction = ' ';  //Resets direction to prevent endless moves
 }
@@ -97,10 +99,39 @@ Player.prototype.handleInput = function(key) {
 	this.direction = key; 
 }
 
+function checkCollisions(player, allEnemies) {
+	//Player dimensions for current position
+	var playerTop = player.y;
+	var playerBottom = player.y + player.height;
+	var playerLeft = player.x;
+	var playerRight = player.x + player.width;
+	
+	//for loop used to loop through all current enemies
+	for (i=0;i<allEnemies.length;i++) {
+		//Enemy dimensions for current position
+		var enemyTop = allEnemies[i].y;
+		var enemyBottom = allEnemies[i].y + allEnemies[i].height;
+		var enemyLeft = allEnemies[i].x;
+		var enemyRight = allEnemies[i].x + allEnemies[i].width;	
+		
+		//Check for collisions from all 4 sides. This looks confusing but
+		//the left side of && checks player's 'shoulders', if either is
+		//within the enemy's width, game resets. Same for player top and bottom
+		//with respect to enemy's top and bottom as well.
+		if (((playerLeft <= enemyRight && playerLeft > enemyLeft) ||
+			 (playerRight < enemyRight && playerRight >= enemyLeft)) &&
+		    ((playerTop >= enemyTop && playerTop <= enemyBottom) ||
+		    (playerBottom >= enemyTop && playerBottom <= enemyBottom))) {	
+			player.x = playerStartX;
+			player.y = playerStartY;
+		}
+	}
+}
+
 // Supporting variables for enemies
 var allEnemies = [];        //Enemy array
 var startX = -110;          //Enemy starting point, off canvas
-var speed = [60,110,150];   //Enemy speed options
+var speed = [80,140,175];   //Enemy speed options
 var row1 = 60;
 var row2 = 143;
 var row3 = 226;
@@ -110,8 +141,10 @@ allEnemies.push(new Enemy(startX,row1,speed[0]));
 allEnemies.push(new Enemy(startX,row2,speed[1]));
 allEnemies.push(new Enemy(startX,row3,speed[2]));
 
-// Place object with starting position
-var player = new Player(201,390);
+// Place player object with starting position
+var playerStartX = 201;
+var playerStartY = 405;
+var player = new Player(playerStartX,playerStartY);
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
@@ -122,6 +155,5 @@ document.addEventListener('keyup', function(e) {
         39: 'right',
         40: 'down'
     };
-
     player.handleInput(allowedKeys[e.keyCode]);
 });
