@@ -81,6 +81,7 @@ var Engine = (function(global) {
     function update(dt) {
         updateEntities(dt);
         checkCollisions(player, allEnemies); //player and enemy objects
+        checkVictory(player); //only player object is passed
     }
 
     /* This is called by the update function  and loops through all of the
